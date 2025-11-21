@@ -11,4 +11,5 @@ def get_client():
 
 def post_tweet(text):
     client = get_client()
-    client.create_tweet(text=text)
+    out = client.create_tweet(text=text)
+    print("Tweet posted:", out)

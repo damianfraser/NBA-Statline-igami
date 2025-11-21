@@ -2,10 +2,12 @@ import sqlite3
 
 DB_PATH = "data/nba_scorigami.db"
 
+
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
 
 def init_db():
     conn = get_db()
@@ -64,16 +66,16 @@ def process_statline(conn, game_id, game_date, p):
 
     cur = conn.cursor()
 
-    # Log occurrence
     cur.execute("""
         INSERT INTO statline_occurrences
         (game_id, game_date, player_id, player_name, team,
          pts, reb, ast, blk, stl)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (game_id, game_date, player_id, player_name, team,
-          pts, reb, ast, blk, stl))
+    """, (
+        game_id, game_date, player_id, player_name, team,
+        pts, reb, ast, blk, stl
+    ))
 
-    # Lookup summary
     cur.execute("""
         SELECT * FROM statline_summary
         WHERE pts=? AND reb=? AND ast=? AND blk=? AND stl=?
@@ -82,7 +84,6 @@ def process_statline(conn, game_id, game_date, p):
     row = cur.fetchone()
 
     if row is None:
-        # First time ever
         cur.execute("""
             INSERT INTO statline_summary
             (pts, reb, ast, blk, stl, count,
@@ -93,7 +94,7 @@ def process_statline(conn, game_id, game_date, p):
             pts, reb, ast, blk, stl,
             1,
             game_id, player_id, player_name, game_date,
-            game_id, player_id, player_name, game_date,
+            game_id, player_id, player_name, game_date
         ))
 
         conn.commit()
@@ -105,12 +106,15 @@ def process_statline(conn, game_id, game_date, p):
             "prior_date": None,
             "player_name": player_name,
             "team": team,
-            "pts": pts, "reb": reb, "ast": ast, "blk": blk, "stl": stl,
-            "game_date": game_date,
+            "pts": pts,
+            "reb": reb,
+            "ast": ast,
+            "blk": blk,
+            "stl": stl,
+            "game_date": game_date
         }
 
     else:
-        # Repeat
         prior_count = row["count"]
         prior_player = row["last_player_name"]
         prior_date = row["last_date"]
@@ -126,7 +130,7 @@ def process_statline(conn, game_id, game_date, p):
         """, (
             prior_count + 1,
             game_id, player_id, player_name, game_date,
-            pts, reb, ast, blk, stl,
+            pts, reb, ast, blk, stl
         ))
 
         conn.commit()
@@ -138,6 +142,10 @@ def process_statline(conn, game_id, game_date, p):
             "prior_date": prior_date,
             "player_name": player_name,
             "team": team,
-            "pts": pts, "reb": reb, "ast": ast, "blk": blk, "stl": stl,
-            "game_date": game_date,
+            "pts": pts,
+            "reb": reb,
+            "ast": ast,
+            "blk": blk,
+            "stl": stl,
+            "game_date": game_date
         }
